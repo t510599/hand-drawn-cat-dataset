@@ -1,0 +1,18 @@
+name: check_hash
+on: [push, pull_request]
+jobs:
+  check_hash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          (sha256sum cat/* && sha256sum not_cat/*) | \
+          perl -nle '
+            /^(\w{64})  ((cat|not_cat)\/(.+)\.\w+)$/;  
+            if (lc($1) ne lc($4)) {
+              print "FAIL: $2 : sha256sum should be $1!";
+              $err = 1;
+            };
+            END{
+              exit 1 if $err == 1
+            }'
